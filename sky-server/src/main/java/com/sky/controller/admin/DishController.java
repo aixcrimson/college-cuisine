@@ -28,8 +28,6 @@ public class DishController {
 
     @Autowired
     private DishService dishService;
-    @Autowired
-    private RedisTemplate redisTemplate;
 
     /**
      * 新增菜品
@@ -59,4 +57,15 @@ public class DishController {
         return Result.success(pageResult);
     }
 
+    /**
+     * 批量删除菜品
+     * @return
+     */
+    @DeleteMapping
+    @ApiOperation("批量删除菜品")
+    public Result deleteByIds(@RequestParam("ids") List<Long> ids){
+        log.info("批量删除菜品：{}", ids);
+        dishService.deleteBatch(ids);
+        return Result.success();
+    }
 }

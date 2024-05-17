@@ -5,9 +5,10 @@
 
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into dish (name, category_id, price, image, description, create_time, update_time, create_user, update_user,status)
-        values
-            (#{name},#{categoryId},#{price},#{image},#{description},#{createTime},#{updateTime},#{createUser},#{updateUser},#{status})
+        insert into dish (name, category_id, price, image, description, create_time, update_time, create_user,
+                          update_user, status)
+        values (#{name}, #{categoryId}, #{price}, #{image}, #{description}, #{createTime}, #{updateTime}, #{createUser},
+                #{updateUser}, #{status})
     </insert>
 
     <select id="pageQuery" resultType="com.sky.vo.DishVO">
@@ -25,4 +26,13 @@
         </where>
         order by d.create_time desc
     </select>
+
+    <delete id="deleteByIds">
+        delete
+        from dish
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
 </mapper>
