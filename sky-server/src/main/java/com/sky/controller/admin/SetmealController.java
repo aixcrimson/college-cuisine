@@ -91,4 +91,16 @@ public class SetmealController {
         setmealService.update(setmealDTO);
         return Result.success();
     }
+
+    /**
+     * 起售禁售套餐
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    @ApiOperation("起售禁售套餐")
+    public Result updateStatus(@PathVariable Integer status, @RequestParam Long id){
+        log.info("起售禁售套餐：status:{},id:{}", status, id);
+        setmealService.updateStatus(status, id);
+        return Result.success();
+    }
 }
