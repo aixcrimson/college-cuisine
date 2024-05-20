@@ -28,6 +28,8 @@ public class DishController {
 
     @Autowired
     private DishService dishService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 新增菜品
@@ -40,7 +42,10 @@ public class DishController {
         log.info("新增菜品，{}", dishDTO);
         dishService.saveWithFlavor(dishDTO);
 
-        // TODO 每次新增删除缓存数据重新加载
+        // 每次新增删除缓存数据重新加载
+        String key = "dish_" + dishDTO.getCategoryId();
+        cleanCache(key);
+
         return Result.success();
     }
 
@@ -66,6 +71,10 @@ public class DishController {
     public Result deleteByIds(@RequestParam("ids") List<Long> ids){
         log.info("批量删除菜品：{}", ids);
         dishService.deleteBatch(ids);
+
+        // 清理菜品缓存数据
+        cleanCache("dish_*");
+
         return Result.success();
     }
 
@@ -92,6 +101,9 @@ public class DishController {
         log.info("修改菜品信息：{}", dishDTO);
         dishService.updateWithFlavor(dishDTO);
 
+        // 清理菜品缓存数据
+        cleanCache("dish_*");
+
         return Result.success();
     }
 
@@ -106,6 +118,10 @@ public class DishController {
     public Result updateStatus(@PathVariable Integer status, Long id){
         log.info("菜品起售停售：status:{} id:{}",status, id);
         dishService.updateStatus(status, id);
+
+        // 清理菜品缓存数据
+        cleanCache("dish_*");
+
         return Result.success();
     }
 
@@ -120,5 +136,14 @@ public class DishController {
         log.info("根据分类id查询菜品：{}", categoryId);
         List<Dish> list = dishService.list(categoryId);
         return Result.success(list);
+    }
+
+    /**
+     * 清理缓存的菜品数据
+     * @param pattern
+     */
+    private void cleanCache(String pattern){
+        Set keys = redisTemplate.keys(pattern);
+        redisTemplate.delete(keys);
     }
 }
