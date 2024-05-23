@@ -243,7 +243,7 @@ public class OrderServiceImpl implements OrderService {
      * @param id
      */
     @Override
-    public void cancel(Long id) {
+    public void userCancelById(Long id) {
         // 1.根据id查询订单
         Orders ordersDB = orderMapper.getById(id);
         // 2.检验订单是否存在
@@ -386,6 +386,33 @@ public class OrderServiceImpl implements OrderService {
         orders.setId(ordersDB.getId());
         orders.setStatus(Orders.CANCELLED);
         orders.setRejectionReason(ordersRejectionDTO.getRejectionReason());
+        orders.setCancelTime(LocalDateTime.now());
+
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 商家取消订单
+     * @param ordersCancelDTO
+     */
+    @Override
+    public void adminCancel(OrdersCancelDTO ordersCancelDTO) {
+        // 1.根据id查询订单
+        Long orderId = ordersCancelDTO.getId();
+        Orders ordersDB = orderMapper.getById(orderId);
+
+        // 2.如果用户已经支付，需要退款
+        Integer payStatus = ordersDB.getPayStatus();
+        if(payStatus == Orders.PAID){
+            // 退款
+            log.info("退款");
+        }
+
+        // 3.修改订单状态、取消原因、取消时间
+        Orders orders = new Orders();
+        orders.setId(ordersDB.getId());
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelReason(ordersCancelDTO.getCancelReason());
         orders.setCancelTime(LocalDateTime.now());
 
         orderMapper.update(orders);

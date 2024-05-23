@@ -49,7 +49,7 @@ public interface OrderService {
      * 用户取消订单
      * @param id
      */
-    void cancel(Long id);
+    void userCancelById(Long id);
 
     /**
      * 再来一单
@@ -81,4 +81,10 @@ public interface OrderService {
      * @param ordersRejectionDTO
      */
     void rejection(OrdersRejectionDTO ordersRejectionDTO);
+
+    /**
+     * 商家取消订单
+     * @param ordersCancelDTO
+     */
+    void adminCancel(OrdersCancelDTO ordersCancelDTO);
 }

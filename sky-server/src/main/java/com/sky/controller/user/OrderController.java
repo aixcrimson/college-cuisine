@@ -86,7 +86,7 @@ public class OrderController {
     @ApiOperation("取消订单")
     public Result cancel(@PathVariable Long id){
         log.info("取消订单，{}", id);
-        orderService.cancel(id);
+        orderService.userCancelById(id);
         return Result.success();
     }
 
