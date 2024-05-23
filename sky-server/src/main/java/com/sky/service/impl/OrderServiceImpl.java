@@ -19,17 +19,19 @@ import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
@@ -50,6 +52,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 用户下单
+     *
      * @param ordersSubmitDTO
      * @return
      */
@@ -59,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
         // 1.处理业务异常（地址簿为空，购物车数据为空
         // 1.1.地址簿为空
         AddressBook addressBook = addressBookMapper.getById(ordersSubmitDTO.getAddressBookId());
-        if(addressBook == null){
+        if (addressBook == null) {
             // 抛出业务异常
             throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
         }
@@ -69,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
         Long userId = BaseContext.getCurrentId();
         shoppingCart.setUserId(userId);
         List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
-        if(shoppingCartList == null || shoppingCartList.size() == 0){
+        if (shoppingCartList == null || shoppingCartList.size() == 0) {
             // 抛出业务异常
             throw new ShoppingCartBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
         }
@@ -141,7 +144,7 @@ public class OrderServiceImpl implements OrderService {
 */
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("code","ORDERPAID");
+        jsonObject.put("code", "ORDERPAID");
         OrderPaymentVO vo = jsonObject.toJavaObject(OrderPaymentVO.class);
         vo.setPackageStr(jsonObject.getString("package"));
         Integer OrderPaidStatus = Orders.PAID;//支付状态，已支付
@@ -209,5 +212,97 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return new PageResult(page.getTotal(), list);
+    }
+
+    /**
+     * 查询订单详情
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public OrderVO details(Long id) {
+        // 1.创建OrderVO对象
+        OrderVO orderVO = new OrderVO();
+
+        // 2.根据id查询订单
+        Orders orders = orderMapper.getById(id);
+
+        // 3.查询该订单对应的菜品/套餐明细
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+
+        // 4.将订单及其详情信息封装到OrderVO返回
+        BeanUtils.copyProperties(orders, orderVO);
+        orderVO.setOrderDetailList(orderDetailList);
+        return orderVO;
+    }
+
+    /**
+     * 取消订单
+     *
+     * @param id
+     */
+    @Override
+    public void cancel(Long id) {
+        // 1.根据id查询订单
+        Orders ordersDB = orderMapper.getById(id);
+        // 2.检验订单是否存在
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        // 订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
+        Integer status = ordersDB.getStatus();
+
+        // 3.如果订单在已接单或派送中，无法取消
+        if (status > 2) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        // 创建orders对象用于修改订单
+        Orders orders = new Orders();
+        orders.setId(ordersDB.getId());
+
+        // 4.如果订单处于待接单状态，需进行退款
+        if (status.equals(Orders.TO_BE_CONFIRMED)) {
+            // 调用微信支付退款接口进行退款
+            log.info("退款成功");
+            // 修改订单支付状态为退款
+            orders.setPayStatus(Orders.REFUND);
+        }
+
+        // 5.更新订单状态，取消原因，取消时间
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelReason("用户取消");
+        orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 再来一单
+     *
+     * @param id
+     */
+    @Override
+    public void repetition(Long id) {
+        // 1.查询用户id，用于封装购物车对象
+        Long userId = BaseContext.getCurrentId();
+
+        // 2.根据订单id查询当前订单详情
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+
+        // 3.将订单详情对象转换为购物车对象
+        List<ShoppingCart> shoppingCartList = orderDetailList.stream().map(orderDetail -> {
+            ShoppingCart shoppingCart = new ShoppingCart();
+
+            // 将订单详情中的菜品信息复制到购物车对象，排除订单详情id
+            BeanUtils.copyProperties(orderDetail, shoppingCart, "id");
+            shoppingCart.setUserId(userId);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            return shoppingCart;
+        }).collect(Collectors.toList());
+
+        // 4.将购物车对象批量添加到数据库
+        shoppingCartMapper.insertBatch(shoppingCartList);
     }
 }
