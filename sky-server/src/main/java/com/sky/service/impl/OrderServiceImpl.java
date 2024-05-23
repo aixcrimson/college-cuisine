@@ -5,6 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
@@ -310,6 +311,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 订单搜索
+     *
      * @param ordersPageQueryDTO
      * @return
      */
@@ -328,6 +330,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 各个状态的订单数量统计
+     *
      * @return
      */
     @Override
@@ -346,7 +349,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 接单
+     *
+     * @param ordersConfirmDTO
+     */
+    @Override
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        Orders orders = Orders.builder()
+                .id(ordersConfirmDTO.getId())
+                .status(Orders.CONFIRMED)
+                .build();
+
+        orderMapper.update(orders);
+    }
+
+    /**
      * 将orders转换为orderVO
+     *
      * @param page
      * @return
      */
@@ -355,7 +374,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderVO> orderVOList = new ArrayList<>();
 
         List<Orders> ordersList = page.getResult();
-        if(!CollectionUtils.isEmpty(ordersList)) {
+        if (!CollectionUtils.isEmpty(ordersList)) {
             for (Orders orders : ordersList) {
                 // 将共同字段复制到orderVO
                 OrderVO orderVO = new OrderVO();
@@ -372,6 +391,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 根据订单id获取菜品信息字符串
+     *
      * @param orders
      * @return
      */
