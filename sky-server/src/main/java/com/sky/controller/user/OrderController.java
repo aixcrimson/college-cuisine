@@ -25,18 +25,20 @@ public class OrderController {
 
     /**
      * 用户下单
+     *
      * @return
      */
     @PostMapping("/submit")
     @ApiOperation("用户下单")
-    public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO){
-        log.info("用户下单：{}",ordersSubmitDTO);
+    public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO) {
+        log.info("用户下单：{}", ordersSubmitDTO);
         OrderSubmitVO orderSubmitVO = orderService.submitOrder(ordersSubmitDTO);
         return Result.success(orderSubmitVO);
     }
 
     /**
      * 订单支付
+     *
      * @param ordersPaymentDTO
      * @return
      */
@@ -66,12 +68,13 @@ public class OrderController {
 
     /**
      * 查询订单详情
+     *
      * @param id
      * @return
      */
     @GetMapping("/orderDetail/{id}")
     @ApiOperation("查询订单详情")
-    public Result<OrderVO> details(@PathVariable Long id){
+    public Result<OrderVO> details(@PathVariable Long id) {
         log.info("查询订单详情:{}", id);
         OrderVO orderVO = orderService.details(id);
         return Result.success(orderVO);
@@ -79,12 +82,13 @@ public class OrderController {
 
     /**
      * 用户取消订单
+     *
      * @param id
      * @return
      */
     @PutMapping("/cancel/{id}")
     @ApiOperation("取消订单")
-    public Result cancel(@PathVariable Long id){
+    public Result cancel(@PathVariable Long id) {
         log.info("取消订单，{}", id);
         orderService.userCancelById(id);
         return Result.success();
@@ -92,14 +96,28 @@ public class OrderController {
 
     /**
      * 再来一单
+     *
      * @param id
      * @return
      */
     @PostMapping("/repetition/{id}")
     @ApiOperation("再来一单")
-    public Result repetition(@PathVariable Long id){
-        log.info("再来一单,{}",id);
+    public Result repetition(@PathVariable Long id) {
+        log.info("再来一单,{}", id);
         orderService.repetition(id);
+        return Result.success();
+    }
+
+    /**
+     * 客户催单
+     * @param id
+     * @return
+     */
+    @GetMapping("/reminder/{id}")
+    @ApiOperation("客户催单")
+    public Result reminder(@PathVariable("id") Long id) {
+        log.info("客户催单：{}", id);
+        orderService.reminder(id);
         return Result.success();
     }
 }
