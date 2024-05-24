@@ -438,6 +438,27 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 完成订单
+     * @param id
+     */
+    @Override
+    public void complete(Long id) {
+        // 1.判断订单是否处于“派送中”状态
+        Orders ordersDB = orderMapper.getById(id);
+        if(ordersDB == null || !ordersDB.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        // 2.修改订单状态
+        Orders orders = new Orders();
+        orders.setId(ordersDB.getId());
+        orders.setStatus(Orders.COMPLETED);
+        orders.setDeliveryTime(LocalDateTime.now());
+
+        orderMapper.update(orders);
+    }
+
+    /**
      * 将orders转换为orderVO
      *
      * @param page
