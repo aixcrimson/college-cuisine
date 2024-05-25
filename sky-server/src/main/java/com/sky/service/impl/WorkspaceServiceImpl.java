@@ -147,8 +147,22 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .build();
     }
 
-    @Override
+    /**
+     * 查询套餐总览
+     *
+     * @return
+     */
     public SetmealOverViewVO getSetmealOverView() {
-        return null;
+        Map map = new HashMap();
+        map.put("status", StatusConstant.ENABLE);
+        Integer sold = setmealMapper.countByMap(map);
+
+        map.put("status", StatusConstant.DISABLE);
+        Integer discontinued = setmealMapper.countByMap(map);
+
+        return SetmealOverViewVO.builder()
+                .sold(sold)
+                .discontinued(discontinued)
+                .build();
     }
 }

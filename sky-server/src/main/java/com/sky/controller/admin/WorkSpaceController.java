@@ -67,4 +67,16 @@ public class WorkSpaceController {
         DishOverViewVO dishOverView = workspaceService.getDishOverView();
         return Result.success(dishOverView);
     }
+
+    /**
+     * 查询套餐总览
+     * @return
+     */
+    @GetMapping("/overviewSetmeals")
+    @ApiOperation("查询套餐总览")
+    public Result<SetmealOverViewVO> setmealOverView(){
+        log.info("查询套餐总览");
+        SetmealOverViewVO setmealOverView = workspaceService.getSetmealOverView();
+        return Result.success(setmealOverView);
+    }
 }
