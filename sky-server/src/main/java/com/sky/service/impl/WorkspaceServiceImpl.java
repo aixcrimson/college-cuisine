@@ -128,9 +128,23 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return orderOverViewVO;
     }
 
-    @Override
+    /**
+     * 查询菜品总览
+     *
+     * @return
+     */
     public DishOverViewVO getDishOverView() {
-        return null;
+        Map map = new HashMap();
+        map.put("status", StatusConstant.ENABLE);
+        Integer sold = dishMapper.countByMap(map);
+
+        map.put("status", StatusConstant.DISABLE);
+        Integer discontinued = dishMapper.countByMap(map);
+
+        return DishOverViewVO.builder()
+                .sold(sold)
+                .discontinued(discontinued)
+                .build();
     }
 
     @Override
