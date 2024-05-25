@@ -108,6 +108,7 @@ public class ReportServiceImpl implements ReportService {
             newUserList.add(newUser);
         }
 
+        // 5.创建TurnoverReportVO对象封装数据返回
         UserReportVO userReportVO = UserReportVO.builder()
                 .dateList(StringUtils.join(dateList, ","))
                 .totalUserList(StringUtils.join(totalUserList, ","))
