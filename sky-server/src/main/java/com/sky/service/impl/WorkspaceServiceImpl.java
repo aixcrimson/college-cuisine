@@ -86,9 +86,46 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return businessDataVO;
     }
 
+    /**
+     * 查询订单管理数据
+     * @return
+     */
     @Override
     public OrderOverViewVO getOrderOverView() {
-        return null;
+        // 1.封装条件
+        Map map = new HashMap();
+        map.put("begin", LocalDateTime.now().with(LocalTime.MIN));
+        map.put("end", LocalDateTime.now().with(LocalTime.MAX));
+        map.put("status", Orders.TO_BE_CONFIRMED);
+
+        // 2.待接单数量
+        Integer waitingOrders = orderMapper.countByMap(map);
+
+        // 3.待派送数量
+        map.put("status", Orders.CONFIRMED);
+        Integer deliveredOrders = orderMapper.countByMap(map);
+
+        // 4.已完成数量
+        map.put("status", Orders.COMPLETED);
+        Integer completedOrders = orderMapper.countByMap(map);
+
+        // 5.已取消数量
+        map.put("status", Orders.CANCELLED);
+        Integer cancelledOrders = orderMapper.countByMap(map);
+
+        // 6.全部订单数量
+        map.put("status", null);
+        Integer allOrders = orderMapper.countByMap(map);
+
+        // 7.封装结果返回
+        OrderOverViewVO orderOverViewVO = OrderOverViewVO.builder()
+                .waitingOrders(waitingOrders)
+                .deliveredOrders(deliveredOrders)
+                .completedOrders(completedOrders)
+                .cancelledOrders(cancelledOrders)
+                .allOrders(allOrders)
+                .build();
+        return orderOverViewVO;
     }
 
     @Override

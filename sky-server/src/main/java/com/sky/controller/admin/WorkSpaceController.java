@@ -44,5 +44,15 @@ public class WorkSpaceController {
         return Result.success(businessDataVO);
     }
 
-
+    /**
+     * 查询订单管理数据
+     * @return
+     */
+    @GetMapping("/overviewOrders")
+    @ApiOperation("查询订单管理数据")
+    public Result<OrderOverViewVO> orderOverView(){
+        log.info("查询订单管理数据");
+        OrderOverViewVO orderOverView = workspaceService.getOrderOverView();
+        return Result.success(orderOverView);
+    }
 }
